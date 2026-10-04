@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using Racing.Application.Competitions;
 using Racing.Application.Connections;
 using Racing.Contracts.V1;
 
@@ -9,13 +10,16 @@ namespace Racing.Api.Services;
 
 public sealed class RacingGrpcService : RacingService.RacingServiceBase
 {
+    private readonly CompetitionManager _competitionManager;
     private readonly AgentConnectionRegistry _connectionRegistry;
     private readonly ILogger<RacingGrpcService> _logger;
 
     public RacingGrpcService(
+        CompetitionManager competitionManager,
         AgentConnectionRegistry connectionRegistry,
         ILogger<RacingGrpcService> logger)
     {
+        _competitionManager = competitionManager;
         _connectionRegistry = connectionRegistry;
         _logger = logger;
     }
@@ -50,16 +54,28 @@ public sealed class RacingGrpcService : RacingService.RacingServiceBase
         var hello = firstMsg.Hello;
         _logger.LogInformation("Agent '{Name}' connecting with token '{Token}'", hello.AgentName, hello.SessionToken);
 
-        // 세션 토큰으로부터 ParticipantId 파싱 (향후 DB 검증과 연동)
-        // 토큰 형식: rse_<guid> 또는 임의 세션
+        // 토큰 유효성 검증
         Guid participantId;
-        if (hello.SessionToken.StartsWith("rse_") && Guid.TryParse(hello.SessionToken[4..], out var parsedId))
+        if (_competitionManager.ValidateToken(hello.SessionToken, out var validatedId))
         {
-            participantId = parsedId;
+            participantId = validatedId;
+        }
+        else if (hello.SessionToken.StartsWith("rse_"))
+        {
+            // 직접 테스트 모드 허용
+            participantId = Guid.NewGuid();
         }
         else
         {
-            participantId = Guid.NewGuid();
+            await responseStream.WriteAsync(new ServerMessage
+            {
+                Error = new Error
+                {
+                    Code = Error.Types.Code.Unauthorized,
+                    Message = "Invalid or expired session token."
+                }
+            });
+            return;
         }
 
         var connection = new GrpcAgentConnection(participantId, hello.AgentName);
