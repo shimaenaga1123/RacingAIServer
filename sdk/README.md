@@ -16,7 +16,7 @@ class MyAI(Agent):
         return Action(steering=steering, throttle=throttle, brake=brake)
 
 if __name__ == "__main__":
-    client = RacingClient("http://localhost:5000")
+    client = RacingClient("https://localhost:5164")
     session = client.join(code="482731", agent_name="MyAI")
     session.run(MyAI())
 ```

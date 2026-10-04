@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build"]
+build-backend = "uv_build"
 
 [project]
 name = "racing-sdk"
@@ -13,11 +13,8 @@ dependencies = [
     "protobuf>=4.25.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=7.0",
     "grpcio-tools>=1.60.0",
 ]
-
-[tool.setuptools.packages.find]
-where = ["src"]

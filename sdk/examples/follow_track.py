@@ -30,7 +30,7 @@ class FollowTrackAgent(Agent):
 
 
 if __name__ == "__main__":
-    server = sys.argv[1] if len(sys.argv) > 1 else "localhost:5000"
+    server = sys.argv[1] if len(sys.argv) > 1 else "https://localhost:5164"
     code = sys.argv[2] if len(sys.argv) > 2 else "123456"
 
     print(f"Connecting to {server} for competition {code}...")

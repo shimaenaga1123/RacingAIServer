@@ -1,6 +1,8 @@
 from __future__ import annotations
 import queue
 import threading
+import sys
+import ssl
 from typing import Optional
 import grpc
 
@@ -27,11 +29,13 @@ class RacingSession:
         session_token: str,
         agent_name: str,
         insecure: bool = True,
+        ssl_cert: Optional[bytes] = None,
     ):
         self._server_url = server_url.replace("http://", "").replace("https://", "")
         self._session_token = session_token
         self._agent_name = agent_name
         self._insecure = insecure
+        self._ssl_cert = ssl_cert
         self._send_queue: queue.Queue[Optional[racing_pb2.ClientMessage]] = queue.Queue()
         self._stop_event = threading.Event()
 
@@ -40,7 +44,20 @@ class RacingSession:
         if self._insecure:
             channel = grpc.insecure_channel(self._server_url)
         else:
-            channel = grpc.secure_channel(self._server_url, grpc.ssl_channel_credentials())
+            root_certs = self._ssl_cert
+            if not root_certs and sys.platform == "win32" and ("localhost" in self._server_url or "127.0.0.1" in self._server_url):
+                try:
+                    pems = [
+                        ssl.DER_cert_to_PEM_cert(c[0]).encode("utf-8")
+                        for c in ssl.enum_certificates("Root")
+                    ]
+                    if pems:
+                        root_certs = b"\n".join(pems)
+                except Exception:
+                    pass
+
+            creds = grpc.ssl_channel_credentials(root_certificates=root_certs)
+            channel = grpc.secure_channel(self._server_url, creds)
 
         stub = racing_pb2_grpc.RacingServiceStub(channel)
 
