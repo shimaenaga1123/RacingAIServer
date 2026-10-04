@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Racing.Domain\Racing.Domain.csproj" />
     <ProjectReference Include="..\Racing.Simulation\Racing.Simulation.csproj" />
+    <ProjectReference Include="..\Racing.Contracts\Racing.Contracts.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
