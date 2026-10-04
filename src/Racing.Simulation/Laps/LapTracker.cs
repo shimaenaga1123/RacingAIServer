@@ -49,7 +49,7 @@ public sealed class LapTracker
             float curDist = trackPos.DistanceAlongTrack;
 
             // 순방향으로 통과한 경우 (트랙 랩 래핑 고려)
-            if (nextCpIdx == 0 && progress.CurrentLap > 1)
+            if (nextCpIdx == 0)
             {
                 // 랩 통과 지점: 직전 거리가 트랙 끝 근처이고 현재 거리가 트랙 시작 근처
                 if (prevDist > _track.TotalLength * 0.8f && curDist < _track.TotalLength * 0.2f)
@@ -66,12 +66,7 @@ public sealed class LapTracker
         if (crossed)
         {
             // 체크포인트 통과 성공!
-            if (nextCpIdx == totalCp - 1)
-            {
-                // 마지막 체크포인트 통과 -> 다음은 0번 (결승선)
-                progress.NextCheckpointIndex = 0;
-            }
-            else if (nextCpIdx == 0 && progress.CurrentLap > 1)
+            if (nextCpIdx == 0)
             {
                 // 결승선(0번 체크포인트) 통과 -> 랩 완료!
                 float lapTime = progress.CurrentLapTimeSeconds;
@@ -92,6 +87,11 @@ public sealed class LapTracker
                     progress.CurrentLapTimeSeconds = 0f;
                     progress.NextCheckpointIndex = 1;
                 }
+            }
+            else if (nextCpIdx == totalCp - 1)
+            {
+                // 마지막 체크포인트 통과 -> 다음 목표는 결승선 (0번)
+                progress.NextCheckpointIndex = 0;
             }
             else
             {

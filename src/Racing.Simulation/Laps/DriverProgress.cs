@@ -5,7 +5,7 @@ namespace Racing.Simulation.Laps;
 public sealed class DriverProgress
 {
     public int CurrentLap { get; set; } = 1;
-    public int NextCheckpointIndex { get; set; } = 0;
+    public int NextCheckpointIndex { get; set; } = 1;
     public bool IsFinished { get; set; } = false;
     public bool IsDisqualified { get; set; } = false;
     public string? DnfReason { get; set; }
