@@ -1,0 +1,15 @@
+{
+  "id": "beginner-circuit",
+  "name": "Beginner Circuit",
+  "isLoop": true,
+  "defaultLaps": 3,
+  "points": [
+    { "position": { "x": 0.0, "y": 0.0 }, "width": 14.0 },
+    { "position": { "x": 60.0, "y": 0.0 }, "width": 14.0 },
+    { "position": { "x": 120.0, "y": 20.0 }, "width": 12.0 },
+    { "position": { "x": 140.0, "y": 70.0 }, "width": 12.0 },
+    { "position": { "x": 100.0, "y": 120.0 }, "width": 13.0 },
+    { "position": { "x": 30.0, "y": 110.0 }, "width": 14.0 },
+    { "position": { "x": -30.0, "y": 60.0 }, "width": 13.0 }
+  ]
+}
