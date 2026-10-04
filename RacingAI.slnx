@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Racing.Api/Racing.Api.csproj" />
+    <Project Path="src/Racing.Application/Racing.Application.csproj" />
+    <Project Path="src/Racing.Contracts/Racing.Contracts.csproj" />
+    <Project Path="src/Racing.Domain/Racing.Domain.csproj" />
+    <Project Path="src/Racing.Infrastructure/Racing.Infrastructure.csproj" />
+    <Project Path="src/Racing.Simulation/Racing.Simulation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Racing.Api.Tests/Racing.Api.Tests.csproj" />
+    <Project Path="tests/Racing.Application.Tests/Racing.Application.Tests.csproj" />
+    <Project Path="tests/Racing.Domain.Tests/Racing.Domain.Tests.csproj" />
+    <Project Path="tests/Racing.Simulation.Tests/Racing.Simulation.Tests.csproj" />
+  </Folder>
+</Solution>
