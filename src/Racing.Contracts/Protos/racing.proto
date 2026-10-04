@@ -1,0 +1,197 @@
+syntax = "proto3";
+
+package racing.v1;
+
+option csharp_namespace = "Racing.Contracts.V1";
+
+// ==========================================
+// Service Definition
+// ==========================================
+
+service RacingService {
+  // Python AI <-> Server bidirectional stream
+  rpc Connect (stream ClientMessage) returns (stream ServerMessage);
+}
+
+// ==========================================
+// Client Messages (Agent -> Server)
+// ==========================================
+
+message ClientMessage {
+  oneof payload {
+    Hello hello = 1;
+    Ready ready = 2;
+    Action action = 3;
+    Pong pong = 4;
+  }
+}
+
+message Hello {
+  string agent_name = 1;
+  string session_token = 2;
+  string sdk_version = 3;
+}
+
+message Ready {
+  string race_id = 1;
+}
+
+message Action {
+  string race_id = 1;
+  uint64 tick = 2;
+  float steering = 3;  // -1.0 (left) ~ +1.0 (right)
+  float throttle = 4;  //  0.0 ~ 1.0
+  float brake = 5;     //  0.0 ~ 1.0
+}
+
+message Pong {
+  int64 timestamp_ns = 1;
+}
+
+// ==========================================
+// Server Messages (Server -> Agent)
+// ==========================================
+
+message ServerMessage {
+  oneof payload {
+    Welcome welcome = 1;
+    RaceAssigned race_assigned = 2;
+    RaceStarted race_started = 3;
+    Observation observation = 4;
+    RaceFinished race_finished = 5;
+    CompetitionFinished competition_finished = 6;
+    Ping ping = 7;
+    Error error = 8;
+  }
+}
+
+message Welcome {
+  string participant_id = 1;
+  string server_version = 2;
+  uint32 heartbeat_interval_ms = 3;
+}
+
+message RaceAssigned {
+  string race_id = 1;
+  string track_id = 2;
+  RaceRules rules = 3;
+  TrackDefinitionData track = 4;
+}
+
+message RaceStarted {
+  string race_id = 1;
+  uint64 start_tick = 2;
+  uint32 total_laps = 3;
+}
+
+message Observation {
+  string race_id = 1;
+  uint64 tick = 2;
+  int64 timestamp_ms = 3;
+
+  CarTelemetry player = 4;
+  TrackTelemetry track = 5;
+  LapTelemetry lap = 6;
+  repeated OpponentTelemetry opponents = 7;
+}
+
+message RaceFinished {
+  string race_id = 1;
+  uint32 rank = 2;
+  float total_time_seconds = 3;
+  float fastest_lap_seconds = 4;
+  bool is_dnf = 5;
+  string dnf_reason = 6;
+}
+
+message CompetitionFinished {
+  string competition_id = 1;
+  uint32 final_rank = 2;
+  int32 total_points = 3;
+}
+
+message Ping {
+  int64 timestamp_ns = 1;
+}
+
+message Error {
+  enum Code {
+    UNKNOWN = 0;
+    UNAUTHORIZED = 1;
+    RACE_NOT_FOUND = 2;
+    INVALID_ACTION = 3;
+    TIMEOUT_EXCEEDED = 4;
+    DISQUALIFIED = 5;
+  }
+  Code code = 1;
+  string message = 2;
+}
+
+// ==========================================
+// Data Structures
+// ==========================================
+
+message Vector2Msg {
+  float x = 1;
+  float y = 2;
+}
+
+message CarTelemetry {
+  Vector2Msg position = 1;
+  Vector2Msg velocity = 2;
+  float speed = 3;
+  float rotation = 4;
+  float angular_velocity = 5;
+  float current_steering = 6;
+  float current_throttle = 7;
+  float current_brake = 8;
+}
+
+message TrackTelemetry {
+  float distance_along_track = 1;
+  float lateral_offset = 2;
+  float heading_error = 3;
+  float track_width = 4;
+  repeated float future_curvatures = 5;
+}
+
+message LapTelemetry {
+  uint32 current_lap = 1;
+  uint32 total_laps = 2;
+  float current_lap_time = 3;
+  float last_lap_time = 4;
+  float best_lap_time = 5;
+  uint32 next_checkpoint_idx = 6;
+  uint32 total_checkpoints = 7;
+}
+
+message OpponentTelemetry {
+  string participant_id = 1;
+  string name = 2;
+  Vector2Msg position = 3;
+  Vector2Msg velocity = 4;
+  float speed = 5;
+  float rotation = 6;
+  float distance_along_track = 7;
+  float lateral_offset = 8;
+}
+
+message RaceRules {
+  uint32 tick_rate = 1;
+  uint32 action_timeout_ms = 2;
+  uint32 max_consecutive_timeouts = 3;
+  uint32 total_laps = 4;
+}
+
+message TrackDefinitionData {
+  string id = 1;
+  string name = 2;
+  bool is_loop = 3;
+  float total_length = 4;
+  repeated TrackPointMsg points = 5;
+}
+
+message TrackPointMsg {
+  Vector2Msg position = 1;
+  float width = 2;
+}
