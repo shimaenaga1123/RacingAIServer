@@ -121,4 +121,28 @@ public sealed class CompetitionsController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    [HttpGet("{code}/leaderboard")]
+    public IActionResult GetLeaderboard(string code)
+    {
+        if (!_competitionManager.TryGetByCode(code, out var comp) || comp == null)
+        {
+            return NotFound(new { error = $"Competition '{code}' not found." });
+        }
+
+        // 참가자 목록 기본 리더보드 반환 (순위 1부터 참가 순서 또는 레이스 집계)
+        var leaderboard = comp.Participants.Select((p, idx) => new
+        {
+            rank = idx + 1,
+            participantId = p.Id,
+            participantName = p.Name,
+            totalPoints = 0,
+            racesParticipated = 0,
+            wins = 0,
+            podiums = 0,
+            bestLapTimeSeconds = 0.0f
+        });
+
+        return Ok(leaderboard);
+    }
 }
