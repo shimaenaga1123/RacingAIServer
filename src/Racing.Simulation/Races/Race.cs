@@ -4,23 +4,15 @@ using Racing.Simulation.Tracks;
 
 namespace Racing.Simulation.Races;
 
-public sealed class Race
+public sealed class Race(Guid id, TrackRuntime track, IReadOnlyList<Driver> drivers, int totalLaps = 3)
 {
-    public Guid Id { get; }
-    public TrackRuntime Track { get; }
-    public int TotalLaps { get; }
-    public IReadOnlyList<Driver> Drivers { get; }
+    public Guid Id { get; } = id;
+    public TrackRuntime Track { get; } = track;
+    public int TotalLaps { get; } = totalLaps;
+    public IReadOnlyList<Driver> Drivers { get; } = drivers;
 
     public RaceStatus Status { get; private set; } = RaceStatus.Ready;
     public ulong CurrentTick { get; private set; } = 0;
-
-    public Race(Guid id, TrackRuntime track, IReadOnlyList<Driver> drivers, int totalLaps = 3)
-    {
-        Id = id;
-        Track = track;
-        Drivers = drivers;
-        TotalLaps = totalLaps;
-    }
 
     public void Start()
     {

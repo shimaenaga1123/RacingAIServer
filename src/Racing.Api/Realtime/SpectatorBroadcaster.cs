@@ -9,14 +9,9 @@ using Racing.Simulation.Races;
 
 namespace Racing.Api.Realtime;
 
-public sealed class SpectatorBroadcaster
+public sealed class SpectatorBroadcaster(IHubContext<RaceHub, IRaceSpectatorClient> hubContext)
 {
-    private readonly IHubContext<RaceHub, IRaceSpectatorClient> _hubContext;
-
-    public SpectatorBroadcaster(IHubContext<RaceHub, IRaceSpectatorClient> hubContext)
-    {
-        _hubContext = hubContext;
-    }
+    private readonly IHubContext<RaceHub, IRaceSpectatorClient> _hubContext = hubContext;
 
     public async ValueTask BroadcastTickAsync(Race race, CancellationToken ct = default)
     {

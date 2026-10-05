@@ -9,14 +9,9 @@ using Racing.Infrastructure.Persistence.Entities;
 
 namespace Racing.Infrastructure.Persistence.Repositories;
 
-public sealed class RaceResultRepository : IRaceResultRepository
+public sealed class RaceResultRepository(RacingDbContext db) : IRaceResultRepository
 {
-    private readonly RacingDbContext _db;
-
-    public RaceResultRepository(RacingDbContext db)
-    {
-        _db = db;
-    }
+    private readonly RacingDbContext _db = db;
 
     public async Task SaveResultsAsync(IEnumerable<PersistedRaceResult> results, CancellationToken ct = default)
     {
@@ -47,7 +42,7 @@ public sealed class RaceResultRepository : IRaceResultRepository
             .OrderBy(r => r.Rank)
             .ToListAsync(ct);
 
-        return entities.Select(Map).ToList();
+        return [.. entities.Select(Map)];
     }
 
     public async Task<IReadOnlyList<PersistedRaceResult>> GetResultsByRaceAsync(Guid raceId, CancellationToken ct = default)
@@ -57,7 +52,7 @@ public sealed class RaceResultRepository : IRaceResultRepository
             .OrderBy(r => r.Rank)
             .ToListAsync(ct);
 
-        return entities.Select(Map).ToList();
+        return [.. entities.Select(Map)];
     }
 
     private static PersistedRaceResult Map(RaceResultEntity e) => new(

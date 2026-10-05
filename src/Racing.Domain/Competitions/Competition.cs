@@ -3,35 +3,24 @@ using System.Collections.Generic;
 
 namespace Racing.Domain.Competitions;
 
-public sealed class Competition
+public sealed class Competition(
+    Guid id,
+    string name,
+    string code,
+    string trackId,
+    CompetitionRules? rules = null)
 {
-    private readonly List<Participant> _participants = new();
+    private readonly List<Participant> _participants = [];
 
-    public Guid Id { get; }
-    public string Name { get; }
-    public string Code { get; }
-    public string TrackId { get; }
-    public CompetitionRules Rules { get; }
-    public CompetitionStatus Status { get; private set; }
-    public DateTimeOffset CreatedAt { get; }
+    public Guid Id { get; } = id;
+    public string Name { get; } = name;
+    public string Code { get; } = code;
+    public string TrackId { get; } = trackId;
+    public CompetitionRules Rules { get; } = rules ?? new CompetitionRules();
+    public CompetitionStatus Status { get; private set; } = CompetitionStatus.Created;
+    public DateTimeOffset CreatedAt { get; } = DateTimeOffset.UtcNow;
 
     public IReadOnlyList<Participant> Participants => _participants;
-
-    public Competition(
-        Guid id,
-        string name,
-        string code,
-        string trackId,
-        CompetitionRules? rules = null)
-    {
-        Id = id;
-        Name = name;
-        Code = code;
-        TrackId = trackId;
-        Rules = rules ?? new CompetitionRules();
-        Status = CompetitionStatus.Created;
-        CreatedAt = DateTimeOffset.UtcNow;
-    }
 
     public void Open()
     {

@@ -8,7 +8,9 @@ from .session import RacingSession
 
 class RacingClient:
     def __init__(self, server_url: str, ssl_cert: Optional[bytes] = None):
-        if not server_url.startswith("http://") and not server_url.startswith("https://"):
+        if not server_url.startswith("http://") and not server_url.startswith(
+            "https://"
+        ):
             server_url = f"https://{server_url}"
         self._server_url = server_url.rstrip("/")
         self._ssl_cert = ssl_cert
@@ -18,8 +20,12 @@ class RacingClient:
         Join a competition using a 6-digit code or directly connect with token.
         """
         api_url = f"{self._server_url}/api/v1/competitions/{code}/join"
-        payload = json.dumps({"agentName": agent_name, "sdkVersion": "0.1.0"}).encode("utf-8")
-        req = urllib.request.Request(api_url, data=payload, headers={"Content-Type": "application/json"})
+        payload = json.dumps({"agentName": agent_name, "sdkVersion": "0.1.0"}).encode(
+            "utf-8"
+        )
+        req = urllib.request.Request(
+            api_url, data=payload, headers={"Content-Type": "application/json"}
+        )
 
         session_token = f"rse_{code}"  # Fallback for direct testing
         ctx = None
@@ -30,7 +36,9 @@ class RacingClient:
                 ctx.verify_mode = ssl.CERT_NONE
 
         try:
-            with urllib.request.urlopen(req, data=payload, timeout=5, context=ctx) as response:
+            with urllib.request.urlopen(
+                req, data=payload, timeout=5, context=ctx
+            ) as response:
                 if response.status in (200, 201):
                     data = json.loads(response.read().decode("utf-8"))
                     session_token = data.get("sessionToken", session_token)
@@ -45,4 +53,3 @@ class RacingClient:
             insecure=not self._server_url.startswith("https"),
             ssl_cert=self._ssl_cert,
         )
-

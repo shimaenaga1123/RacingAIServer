@@ -3,14 +3,9 @@ using Racing.Domain.Geometry;
 
 namespace Racing.Simulation.Tracks;
 
-public sealed class TrackCoordinateConverter
+public sealed class TrackCoordinateConverter(TrackRuntime track)
 {
-    private readonly TrackRuntime _track;
-
-    public TrackCoordinateConverter(TrackRuntime track)
-    {
-        _track = track;
-    }
+    private readonly TrackRuntime _track = track;
 
     public int FindNearestSampleIndex(Vector2 worldPos, int hintIndex = -1, int searchRadius = 30)
     {
@@ -91,8 +86,8 @@ public sealed class TrackCoordinateConverter
         // 1. DistanceAlongTrack (S)
         float baseS = _track.DistanceAlongTrack[baseIdx];
         int nextBaseIdx = (baseIdx + 1) % count;
-        float segLength = nextBaseIdx == 0 
-            ? _track.TotalLength - baseS 
+        float segLength = nextBaseIdx == 0
+            ? _track.TotalLength - baseS
             : _track.DistanceAlongTrack[nextBaseIdx] - baseS;
 
         float distanceAlongTrack = baseS + segLength * segmentT;

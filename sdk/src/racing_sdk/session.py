@@ -36,7 +36,9 @@ class RacingSession:
         self._agent_name = agent_name
         self._insecure = insecure
         self._ssl_cert = ssl_cert
-        self._send_queue: queue.Queue[Optional[racing_pb2.ClientMessage]] = queue.Queue()
+        self._send_queue: queue.Queue[Optional[racing_pb2.ClientMessage]] = (
+            queue.Queue()
+        )
         self._stop_event = threading.Event()
 
     def run(self, agent: Agent) -> None:
@@ -45,7 +47,11 @@ class RacingSession:
             channel = grpc.insecure_channel(self._server_url)
         else:
             root_certs = self._ssl_cert
-            if not root_certs and sys.platform == "win32" and ("localhost" in self._server_url or "127.0.0.1" in self._server_url):
+            if (
+                not root_certs
+                and sys.platform == "win32"
+                and ("localhost" in self._server_url or "127.0.0.1" in self._server_url)
+            ):
                 try:
                     pems = [
                         ssl.DER_cert_to_PEM_cert(c[0]).encode("utf-8")

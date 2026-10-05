@@ -2,16 +2,9 @@ using System;
 
 namespace Racing.Domain.Competitions;
 
-public sealed class Participant
+public sealed class Participant(Guid id, string name)
 {
-    public Guid Id { get; }
-    public string Name { get; }
-    public DateTimeOffset RegisteredAt { get; }
-
-    public Participant(Guid id, string name)
-    {
-        Id = id;
-        Name = name;
-        RegisteredAt = DateTimeOffset.UtcNow;
-    }
+    public Guid Id { get; } = id;
+    public string Name { get; } = name;
+    public DateTimeOffset RegisteredAt { get; } = DateTimeOffset.UtcNow;
 }

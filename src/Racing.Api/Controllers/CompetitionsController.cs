@@ -9,14 +9,9 @@ namespace Racing.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public sealed class CompetitionsController : ControllerBase
+public sealed class CompetitionsController(CompetitionManager competitionManager) : ControllerBase
 {
-    private readonly CompetitionManager _competitionManager;
-
-    public CompetitionsController(CompetitionManager competitionManager)
-    {
-        _competitionManager = competitionManager;
-    }
+    private readonly CompetitionManager _competitionManager = competitionManager;
 
     public sealed record CreateCompetitionRequest(
         string Name,

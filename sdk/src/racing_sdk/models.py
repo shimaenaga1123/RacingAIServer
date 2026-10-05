@@ -13,7 +13,7 @@ class Vector2:
 class Action:
     steering: float = 0.0  # -1.0 ~ 1.0
     throttle: float = 1.0  #  0.0 ~ 1.0
-    brake: float = 0.0     #  0.0 ~ 1.0
+    brake: float = 0.0  #  0.0 ~ 1.0
 
 
 @dataclass(frozen=True)

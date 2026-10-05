@@ -10,18 +10,12 @@ using Racing.Simulation.Races;
 
 namespace Racing.Application.Orchestration;
 
-public sealed class ActionCollector
+public sealed class ActionCollector(TimeSpan? timeout = null, int maxConsecutiveTimeouts = 10)
 {
-    private readonly TimeSpan _timeout;
-    private readonly int _maxConsecutiveTimeouts;
+    private readonly TimeSpan _timeout = timeout ?? TimeSpan.FromMilliseconds(50);
+    private readonly int _maxConsecutiveTimeouts = maxConsecutiveTimeouts;
     private readonly ConcurrentDictionary<Guid, int> _consecutiveTimeouts = new();
     private readonly ConcurrentDictionary<Guid, DriverAction> _lastActions = new();
-
-    public ActionCollector(TimeSpan? timeout = null, int maxConsecutiveTimeouts = 10)
-    {
-        _timeout = timeout ?? TimeSpan.FromMilliseconds(50);
-        _maxConsecutiveTimeouts = maxConsecutiveTimeouts;
-    }
 
     public async Task<IReadOnlyDictionary<Guid, DriverAction>> CollectActionsAsync(
         Race race,

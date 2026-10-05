@@ -7,6 +7,7 @@ Python AI Agent SDK for the Autonomous Racing Platform.
 ```python
 from racing import RacingClient, Agent, Action, Observation
 
+
 class MyAI(Agent):
     def act(self, obs: Observation) -> Action:
         # Simple track following
@@ -14,6 +15,7 @@ class MyAI(Agent):
         throttle = 1.0 if obs.player.speed < 16.0 else 0.2
         brake = 0.5 if obs.player.speed > 20.0 else 0.0
         return Action(steering=steering, throttle=throttle, brake=brake)
+
 
 if __name__ == "__main__":
     client = RacingClient("https://localhost:5164")

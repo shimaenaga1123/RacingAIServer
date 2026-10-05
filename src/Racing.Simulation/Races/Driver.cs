@@ -6,22 +6,12 @@ using Racing.Simulation.Tracks;
 
 namespace Racing.Simulation.Races;
 
-public sealed class Driver
+public sealed class Driver(Guid participantId, string name, Car car)
 {
-    public Guid ParticipantId { get; }
-    public string Name { get; }
-    public Car Car { get; }
-    public DriverProgress Progress { get; }
-    public TrackPosition TrackPosition { get; set; }
-    public Vector2 PreviousPosition { get; set; }
-
-    public Driver(Guid participantId, string name, Car car)
-    {
-        ParticipantId = participantId;
-        Name = name;
-        Car = car;
-        Progress = new DriverProgress();
-        TrackPosition = default;
-        PreviousPosition = car.Position;
-    }
+    public Guid ParticipantId { get; } = participantId;
+    public string Name { get; } = name;
+    public Car Car { get; } = car;
+    public DriverProgress Progress { get; } = new DriverProgress();
+    public TrackPosition TrackPosition { get; set; } = default;
+    public Vector2 PreviousPosition { get; set; } = car.Position;
 }

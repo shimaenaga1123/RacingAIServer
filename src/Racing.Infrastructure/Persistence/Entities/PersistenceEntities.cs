@@ -18,7 +18,7 @@ public sealed class CompetitionEntity
     public int TotalLaps { get; set; }
     public int MaxParticipants { get; set; }
 
-    public List<ParticipantEntity> Participants { get; set; } = new();
+    public List<ParticipantEntity> Participants { get; set; } = [];
 }
 
 public sealed class ParticipantEntity

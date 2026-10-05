@@ -7,7 +7,7 @@ namespace Racing.Application.Leaderboard;
 
 public sealed class LeaderboardCalculator
 {
-    public IReadOnlyList<LeaderboardEntry> Calculate(IEnumerable<PersistedRaceResult> results)
+    public static IReadOnlyList<LeaderboardEntry> Calculate(IEnumerable<PersistedRaceResult> results)
     {
         var grouped = results.GroupBy(r => r.ParticipantId);
 
@@ -27,7 +27,7 @@ public sealed class LeaderboardCalculator
             return new
             {
                 ParticipantId = group.Key,
-                ParticipantName = first.ParticipantName,
+                first.ParticipantName,
                 TotalPoints = totalPoints,
                 Participated = participated,
                 Wins = wins,

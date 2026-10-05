@@ -13,17 +13,12 @@ public sealed record JoinResult(
     string AgentName,
     string SessionToken);
 
-public sealed class CompetitionManager
+public sealed class CompetitionManager(SessionTokenProvider? tokenProvider = null)
 {
     private readonly ConcurrentDictionary<string, Competition> _competitionsByCode = new();
     private readonly ConcurrentDictionary<Guid, Competition> _competitionsById = new();
     private readonly ConcurrentDictionary<string, AgentSession> _sessionsByTokenHash = new();
-    private readonly SessionTokenProvider _tokenProvider;
-
-    public CompetitionManager(SessionTokenProvider? tokenProvider = null)
-    {
-        _tokenProvider = tokenProvider ?? new SessionTokenProvider();
-    }
+    private readonly SessionTokenProvider _tokenProvider = tokenProvider ?? new SessionTokenProvider();
 
     public Competition CreateCompetition(
         string name,
@@ -78,7 +73,7 @@ public sealed class CompetitionManager
     public bool ValidateToken(string rawToken, out Guid participantId)
     {
         participantId = Guid.Empty;
-        string hash = _tokenProvider.ComputeHash(rawToken);
+        string hash = SessionTokenProvider.ComputeHash(rawToken);
 
         if (_sessionsByTokenHash.TryGetValue(hash, out var session) && session.IsValid)
         {

@@ -9,26 +9,18 @@ using Racing.Simulation.Tracks;
 
 namespace Racing.Simulation;
 
-public sealed class RaceSimulator
+public sealed class RaceSimulator(
+    TrackRuntime track,
+    IPhysicsEngine? physicsEngine = null,
+    float fixedDeltaTime = RaceSimulator.DefaultFixedDeltaTime,
+    int totalLaps = 3)
 {
-    private readonly IPhysicsEngine _physicsEngine;
-    private readonly TrackCoordinateConverter _coordinateConverter;
-    private readonly LapTracker _lapTracker;
-    private readonly float _dt;
+    private readonly IPhysicsEngine _physicsEngine = physicsEngine ?? new ArcadePhysicsEngine();
+    private readonly TrackCoordinateConverter _coordinateConverter = new TrackCoordinateConverter(track);
+    private readonly LapTracker _lapTracker = new LapTracker(track, totalLaps);
+    private readonly float _dt = fixedDeltaTime;
 
     public const float DefaultFixedDeltaTime = 1f / 60f;
-
-    public RaceSimulator(
-        TrackRuntime track,
-        IPhysicsEngine? physicsEngine = null,
-        float fixedDeltaTime = DefaultFixedDeltaTime,
-        int totalLaps = 3)
-    {
-        _physicsEngine = physicsEngine ?? new ArcadePhysicsEngine();
-        _coordinateConverter = new TrackCoordinateConverter(track);
-        _lapTracker = new LapTracker(track, totalLaps);
-        _dt = fixedDeltaTime;
-    }
 
     public void Step(Race race, IReadOnlyDictionary<Guid, DriverAction> actions)
     {

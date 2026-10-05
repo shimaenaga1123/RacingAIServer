@@ -7,7 +7,7 @@ namespace Racing.Application.Auth;
 
 public sealed class SessionTokenProvider
 {
-    public string GenerateToken(Guid participantId)
+    public static string GenerateToken(Guid participantId)
     {
         byte[] randomBytes = new byte[16];
         RandomNumberGenerator.Fill(randomBytes);
@@ -15,7 +15,7 @@ public sealed class SessionTokenProvider
         return $"rse_{participantId:N}_{randomPart}";
     }
 
-    public string ComputeHash(string token)
+    public static string ComputeHash(string token)
     {
         byte[] bytes = Encoding.UTF8.GetBytes(token);
         byte[] hash = SHA256.HashData(bytes);

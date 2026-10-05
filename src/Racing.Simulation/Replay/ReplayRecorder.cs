@@ -9,7 +9,7 @@ namespace Racing.Simulation.Replay;
 public sealed class ReplayRecorder
 {
     private readonly ReplayHeader _header;
-    private readonly List<ReplayFrame> _frames = new();
+    private readonly List<ReplayFrame> _frames = [];
 
     public ReplayRecorder(Race race, int seed = 42)
     {
@@ -41,7 +41,7 @@ public sealed class ReplayRecorder
         return new ReplayData
         {
             Header = _header,
-            Frames = new List<ReplayFrame>(_frames)
+            Frames = [.. _frames]
         };
     }
 }

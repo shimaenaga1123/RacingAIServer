@@ -5,16 +5,10 @@ using Racing.Domain.Tracks;
 
 namespace Racing.Simulation.Tracks;
 
-public sealed class SplineTrackBuilder
+public sealed class SplineTrackBuilder(float targetSampleStep = 0.5f, int checkpointCount = 12)
 {
-    private readonly float _targetSampleStep;
-    private readonly int _checkpointCount;
-
-    public SplineTrackBuilder(float targetSampleStep = 0.5f, int checkpointCount = 12)
-    {
-        _targetSampleStep = MathF.Max(0.1f, targetSampleStep);
-        _checkpointCount = Math.Max(4, checkpointCount);
-    }
+    private readonly float _targetSampleStep = MathF.Max(0.1f, targetSampleStep);
+    private readonly int _checkpointCount = Math.Max(4, checkpointCount);
 
     public TrackRuntime Build(TrackDefinition definition)
     {
@@ -127,7 +121,7 @@ public sealed class SplineTrackBuilder
             tangents[i] = tangent;
 
             // 좌측: -90도, 우측: +90도 (트랙 진행 방향 기준 우측이 +Normal)
-            Vector2 normal = new Vector2(-tangent.Y, tangent.X);
+            Vector2 normal = new(-tangent.Y, tangent.X);
             normals[i] = normal;
 
             float halfWidth = widths[i] * 0.5f;

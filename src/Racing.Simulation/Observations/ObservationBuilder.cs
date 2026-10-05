@@ -5,15 +5,10 @@ using Racing.Simulation.Tracks;
 
 namespace Racing.Simulation.Observations;
 
-public sealed class ObservationBuilder
+public sealed class ObservationBuilder(TrackCoordinateConverter coordinateConverter)
 {
     private static readonly float[] DefaultLookaheadDistances = [5f, 10f, 20f, 40f];
-    private readonly TrackCoordinateConverter _coordinateConverter;
-
-    public ObservationBuilder(TrackCoordinateConverter coordinateConverter)
-    {
-        _coordinateConverter = coordinateConverter;
-    }
+    private readonly TrackCoordinateConverter _coordinateConverter = coordinateConverter;
 
     public Observation Build(Driver driver, Race race)
     {

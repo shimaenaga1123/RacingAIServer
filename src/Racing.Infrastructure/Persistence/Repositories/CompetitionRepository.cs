@@ -10,14 +10,9 @@ using Racing.Infrastructure.Persistence.Entities;
 
 namespace Racing.Infrastructure.Persistence.Repositories;
 
-public sealed class CompetitionRepository : ICompetitionRepository
+public sealed class CompetitionRepository(RacingDbContext db) : ICompetitionRepository
 {
-    private readonly RacingDbContext _db;
-
-    public CompetitionRepository(RacingDbContext db)
-    {
-        _db = db;
-    }
+    private readonly RacingDbContext _db = db;
 
     public async Task<Competition?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
@@ -80,7 +75,7 @@ public sealed class CompetitionRepository : ICompetitionRepository
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync(ct);
 
-        return entities.Select(MapToDomain).ToList();
+        return [.. entities.Select(MapToDomain)];
     }
 
     private static Competition MapToDomain(CompetitionEntity entity)
@@ -131,13 +126,13 @@ public sealed class CompetitionRepository : ICompetitionRepository
             MaxConsecutiveTimeouts = comp.Rules.MaxConsecutiveTimeouts,
             TotalLaps = comp.Rules.TotalLaps,
             MaxParticipants = comp.Rules.MaxParticipants,
-            Participants = comp.Participants.Select(p => new ParticipantEntity
+            Participants = [.. comp.Participants.Select(p => new ParticipantEntity
             {
                 Id = p.Id,
                 CompetitionId = comp.Id,
                 Name = p.Name,
                 RegisteredAt = p.RegisteredAt
-            }).ToList()
+            })]
         };
     }
 }

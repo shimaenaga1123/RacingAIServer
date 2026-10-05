@@ -1,40 +1,39 @@
-using System.Collections.Generic;
 using Racing.Domain.Geometry;
 using Racing.Domain.Tracks;
 using Racing.Simulation.Tracks;
-using Xunit;
 
-namespace Racing.Simulation.Tests;
-
-public class SplineTrackBuilderTests
+namespace Racing.Simulation.Tests
 {
-    [Fact]
-    public void Build_ShouldGenerateValidTrackRuntime()
+    public class SplineTrackBuilderTests
     {
-        var trackDef = new TrackDefinition
+        [Fact]
+        public void BuildShouldGenerateValidTrackRuntime()
         {
-            Id = "test-track",
-            Name = "Test Track",
-            IsLoop = true,
-            DefaultLaps = 3,
-            Points = new List<TrackPoint>
+            TrackDefinition trackDef = new()
             {
-                new(new Vector2(0f, 0f), 10f),
-                new(new Vector2(100f, 0f), 10f),
-                new(new Vector2(100f, 100f), 10f),
-                new(new Vector2(0f, 100f), 10f)
-            }
-        };
+                Id = "test-track",
+                Name = "Test Track",
+                IsLoop = true,
+                DefaultLaps = 3,
+                Points =
+                [
+                    new(new Vector2(0f, 0f), 10f),
+                    new(new Vector2(100f, 0f), 10f),
+                    new(new Vector2(100f, 100f), 10f),
+                    new(new Vector2(0f, 100f), 10f)
+                ]
+            };
 
-        var builder = new SplineTrackBuilder(targetSampleStep: 1.0f, checkpointCount: 8);
-        var runtime = builder.Build(trackDef);
+            SplineTrackBuilder builder = new(targetSampleStep: 1.0f, checkpointCount: 8);
+            var runtime = builder.Build(trackDef);
 
-        Assert.NotNull(runtime);
-        Assert.True(runtime.TotalLength > 300f);
-        Assert.True(runtime.SampleCount > 100);
-        Assert.Equal(8, runtime.Checkpoints.Count);
-        Assert.Equal(runtime.SampleCount, runtime.Centerline.Length);
-        Assert.Equal(runtime.SampleCount, runtime.LeftBoundaries.Length);
-        Assert.Equal(runtime.SampleCount, runtime.RightBoundaries.Length);
+            Assert.NotNull(runtime);
+            Assert.True(runtime.TotalLength > 300f);
+            Assert.True(runtime.SampleCount > 100);
+            Assert.Equal(8, runtime.Checkpoints.Count);
+            Assert.Equal(runtime.SampleCount, runtime.Centerline.Length);
+            Assert.Equal(runtime.SampleCount, runtime.LeftBoundaries.Length);
+            Assert.Equal(runtime.SampleCount, runtime.RightBoundaries.Length);
+        }
     }
 }

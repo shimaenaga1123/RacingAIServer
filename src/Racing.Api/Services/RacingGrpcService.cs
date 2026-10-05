@@ -8,21 +8,14 @@ using Racing.Contracts.V1;
 
 namespace Racing.Api.Services;
 
-public sealed class RacingGrpcService : RacingService.RacingServiceBase
+public sealed class RacingGrpcService(
+    CompetitionManager competitionManager,
+    AgentConnectionRegistry connectionRegistry,
+    ILogger<RacingGrpcService> logger) : RacingService.RacingServiceBase
 {
-    private readonly CompetitionManager _competitionManager;
-    private readonly AgentConnectionRegistry _connectionRegistry;
-    private readonly ILogger<RacingGrpcService> _logger;
-
-    public RacingGrpcService(
-        CompetitionManager competitionManager,
-        AgentConnectionRegistry connectionRegistry,
-        ILogger<RacingGrpcService> logger)
-    {
-        _competitionManager = competitionManager;
-        _connectionRegistry = connectionRegistry;
-        _logger = logger;
-    }
+    private readonly CompetitionManager _competitionManager = competitionManager;
+    private readonly AgentConnectionRegistry _connectionRegistry = connectionRegistry;
+    private readonly ILogger<RacingGrpcService> _logger = logger;
 
     public override async Task Connect(
         IAsyncStreamReader<ClientMessage> requestStream,
@@ -148,7 +141,7 @@ public sealed class RacingGrpcService : RacingService.RacingServiceBase
         {
             while (connection.OutgoingReader.TryRead(out var msg))
             {
-                await responseStream.WriteAsync(msg);
+                await responseStream.WriteAsync(msg, ct);
             }
         }
     }

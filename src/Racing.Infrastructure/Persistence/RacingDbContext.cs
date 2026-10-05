@@ -3,16 +3,12 @@ using Racing.Infrastructure.Persistence.Entities;
 
 namespace Racing.Infrastructure.Persistence;
 
-public sealed class RacingDbContext : DbContext
+public sealed class RacingDbContext(DbContextOptions<RacingDbContext> options) : DbContext(options)
 {
     public DbSet<CompetitionEntity> Competitions => Set<CompetitionEntity>();
     public DbSet<ParticipantEntity> Participants => Set<ParticipantEntity>();
     public DbSet<AgentSessionEntity> AgentSessions => Set<AgentSessionEntity>();
     public DbSet<RaceResultEntity> RaceResults => Set<RaceResultEntity>();
-
-    public RacingDbContext(DbContextOptions<RacingDbContext> options) : base(options)
-    {
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

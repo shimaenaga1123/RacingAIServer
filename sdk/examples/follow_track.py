@@ -1,16 +1,12 @@
-"""
-Example Python AI Racing Agent: FollowTrackAgent
-"""
 import sys
-from racing import RacingClient, Agent, Action, Observation, RaceInfo, RaceResult
+from racing_sdk import RacingClient, Agent, Action, Observation, RaceInfo, RaceResult
 
 
 class FollowTrackAgent(Agent):
     def on_race_start(self, race: RaceInfo) -> None:
-        print(f"🏁 Race {race.race_id} started on track {race.track_id}!")
+        pass
 
     def act(self, obs: Observation) -> Action:
-        # PD control based on HeadingError and LateralOffset
         steering = -(1.2 * obs.track.heading_error + 0.25 * obs.track.lateral_offset)
 
         target_speed = 15.0
@@ -26,7 +22,7 @@ class FollowTrackAgent(Agent):
         return Action(steering=steering, throttle=throttle, brake=brake)
 
     def on_race_finish(self, result: RaceResult) -> None:
-        print(f"🏆 Race finished! Rank: {result.rank}, Total Time: {result.total_time_seconds:.2f}s")
+        pass
 
 
 if __name__ == "__main__":

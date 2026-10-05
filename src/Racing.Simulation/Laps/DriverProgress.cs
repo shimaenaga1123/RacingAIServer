@@ -15,7 +15,7 @@ public sealed class DriverProgress
     public float BestLapTimeSeconds { get; set; } = float.MaxValue;
     public float TotalRaceTimeSeconds { get; set; } = 0f;
 
-    public List<float> LapTimes { get; } = new();
+    public List<float> LapTimes { get; } = [];
 
     public float LastRecordedDistance { get; set; } = 0f;
     public int ConsecutiveWrongWayTicks { get; set; } = 0;

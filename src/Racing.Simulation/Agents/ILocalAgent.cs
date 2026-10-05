@@ -9,18 +9,11 @@ public interface ILocalAgent
     DriverAction Act(Observation observation);
 }
 
-public sealed class ConstantAgent : ILocalAgent
+public sealed class ConstantAgent(float steering = 0f, float throttle = 1f, float brake = 0f) : ILocalAgent
 {
-    private readonly float _steering;
-    private readonly float _throttle;
-    private readonly float _brake;
-
-    public ConstantAgent(float steering = 0f, float throttle = 1f, float brake = 0f)
-    {
-        _steering = steering;
-        _throttle = throttle;
-        _brake = brake;
-    }
+    private readonly float _steering = steering;
+    private readonly float _throttle = throttle;
+    private readonly float _brake = brake;
 
     public DriverAction Act(Observation observation)
     {
@@ -28,14 +21,9 @@ public sealed class ConstantAgent : ILocalAgent
     }
 }
 
-public sealed class RandomAgent : ILocalAgent
+public sealed class RandomAgent(int seed = 42) : ILocalAgent
 {
-    private readonly Random _random;
-
-    public RandomAgent(int seed = 42)
-    {
-        _random = new Random(seed);
-    }
+    private readonly Random _random = new Random(seed);
 
     public DriverAction Act(Observation observation)
     {
@@ -45,18 +33,11 @@ public sealed class RandomAgent : ILocalAgent
     }
 }
 
-public sealed class FollowTrackAgent : ILocalAgent
+public sealed class FollowTrackAgent(float kpHeading = 1.2f, float kpLateral = 0.25f, float targetSpeed = 16f) : ILocalAgent
 {
-    private readonly float _kpHeading;
-    private readonly float _kpLateral;
-    private readonly float _targetSpeed;
-
-    public FollowTrackAgent(float kpHeading = 1.2f, float kpLateral = 0.25f, float targetSpeed = 16f)
-    {
-        _kpHeading = kpHeading;
-        _kpLateral = kpLateral;
-        _targetSpeed = targetSpeed;
-    }
+    private readonly float _kpHeading = kpHeading;
+    private readonly float _kpLateral = kpLateral;
+    private readonly float _targetSpeed = targetSpeed;
 
     public DriverAction Act(Observation obs)
     {

@@ -5,16 +5,10 @@ using Racing.Simulation.Tracks;
 
 namespace Racing.Simulation.Laps;
 
-public sealed class LapTracker
+public sealed class LapTracker(TrackRuntime track, int totalLaps = 3)
 {
-    private readonly TrackRuntime _track;
-    private readonly int _totalLaps;
-
-    public LapTracker(TrackRuntime track, int totalLaps = 3)
-    {
-        _track = track;
-        _totalLaps = totalLaps;
-    }
+    private readonly TrackRuntime _track = track;
+    private readonly int _totalLaps = totalLaps;
 
     public void UpdateProgress(
         DriverProgress progress,
