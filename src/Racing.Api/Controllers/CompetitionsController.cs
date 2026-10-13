@@ -1,17 +1,29 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Racing.Api.Realtime;
 using Racing.Application.Competitions;
+using Racing.Application.Leaderboard;
+using Racing.Application.Orchestration;
+using Racing.Application.Persistence;
 using Racing.Domain.Competitions;
 
 namespace Racing.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public sealed class CompetitionsController(CompetitionManager competitionManager) : ControllerBase
+public sealed class CompetitionsController(
+    CompetitionManager competitionManager,
+    IRaceOrchestrator raceOrchestrator,
+    SpectatorBroadcaster spectatorBroadcaster,
+    IRaceResultRepository resultRepository) : ControllerBase
 {
     private readonly CompetitionManager _competitionManager = competitionManager;
+    private readonly IRaceOrchestrator _raceOrchestrator = raceOrchestrator;
+    private readonly SpectatorBroadcaster _spectatorBroadcaster = spectatorBroadcaster;
+    private readonly IRaceResultRepository _resultRepository = resultRepository;
 
     public sealed record CreateCompetitionRequest(
         string Name,
@@ -47,6 +59,23 @@ public sealed class CompetitionsController(CompetitionManager competitionManager
             status = comp.Status.ToString(),
             rules = comp.Rules
         });
+    }
+
+    [HttpGet]
+    public IActionResult GetAll()
+    {
+        var competitions = _competitionManager.GetAll().Select(comp => new
+        {
+            id = comp.Id,
+            code = comp.Code,
+            name = comp.Name,
+            trackId = comp.TrackId,
+            status = comp.Status.ToString(),
+            rules = comp.Rules,
+            participantCount = comp.Participants.Count
+        });
+
+        return Ok(competitions);
     }
 
     [HttpGet("{code}")]
@@ -109,7 +138,28 @@ public sealed class CompetitionsController(CompetitionManager competitionManager
         try
         {
             comp.Start();
-            return Ok(new { status = comp.Status.ToString() });
+
+            // 백그라운드에서 실시간 시뮬레이션 및 60Hz/15Hz 중계 루프 기동
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _raceOrchestrator.RunRaceAsync(
+                        comp,
+                        onTickBroadcast: (race, ct) => _spectatorBroadcaster.BroadcastTickAsync(race, ct)
+                    );
+                }
+                catch (Exception)
+                {
+                    // 로깅 및 상태 복구
+                }
+            });
+
+            return Ok(new
+            {
+                status = comp.Status.ToString(),
+                message = "Race started successfully."
+            });
         }
         catch (InvalidOperationException ex)
         {
@@ -117,27 +167,49 @@ public sealed class CompetitionsController(CompetitionManager competitionManager
         }
     }
 
-    [HttpGet("{code}/leaderboard")]
-    public IActionResult GetLeaderboard(string code)
+    [HttpGet("{code}/race")]
+    public IActionResult GetActiveRace(string code)
     {
         if (!_competitionManager.TryGetByCode(code, out var comp) || comp == null)
         {
             return NotFound(new { error = $"Competition '{code}' not found." });
         }
 
-        // 참가자 목록 기본 리더보드 반환 (순위 1부터 참가 순서 또는 레이스 집계)
-        var leaderboard = comp.Participants.Select((p, idx) => new
+        var race = _raceOrchestrator.GetActiveRace(comp.Id);
+        if (race == null)
         {
-            rank = idx + 1,
-            participantId = p.Id,
-            participantName = p.Name,
-            totalPoints = 0,
-            racesParticipated = 0,
-            wins = 0,
-            podiums = 0,
-            bestLapTimeSeconds = 0.0f
-        });
+            return Ok(new { isRunning = false, status = comp.Status.ToString() });
+        }
 
-        return Ok(leaderboard);
+        return Ok(new
+        {
+            isRunning = true,
+            raceId = race.Id,
+            currentTick = race.CurrentTick,
+            status = race.Status.ToString(),
+            drivers = race.Drivers.Select(d => new
+            {
+                participantId = d.ParticipantId,
+                name = d.Name,
+                lap = d.Progress.CurrentLap,
+                speed = d.Car.Speed,
+                isFinished = d.Progress.IsFinished,
+                isDisqualified = d.Progress.IsDisqualified
+            })
+        });
+    }
+
+    [HttpGet("{code}/leaderboard")]
+    public async Task<IActionResult> GetLeaderboard(string code)
+    {
+        if (!_competitionManager.TryGetByCode(code, out var comp) || comp == null)
+        {
+            return NotFound(new { error = $"Competition '{code}' not found." });
+        }
+
+        var results = await _resultRepository.GetResultsByCompetitionAsync(comp.Id);
+        var entries = LeaderboardCalculator.Calculate(comp.Participants, results);
+
+        return Ok(entries);
     }
 }

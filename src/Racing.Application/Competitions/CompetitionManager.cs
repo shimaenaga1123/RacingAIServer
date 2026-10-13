@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Racing.Application.Auth;
+using Racing.Application.Persistence;
 using Racing.Domain.Auth;
 using Racing.Domain.Competitions;
 
@@ -13,12 +15,15 @@ public sealed record JoinResult(
     string AgentName,
     string SessionToken);
 
-public sealed class CompetitionManager(SessionTokenProvider? tokenProvider = null)
+public sealed class CompetitionManager(
+    SessionTokenProvider? tokenProvider = null,
+    ICompetitionRepository? repository = null)
 {
     private readonly ConcurrentDictionary<string, Competition> _competitionsByCode = new();
     private readonly ConcurrentDictionary<Guid, Competition> _competitionsById = new();
     private readonly ConcurrentDictionary<string, AgentSession> _sessionsByTokenHash = new();
     private readonly SessionTokenProvider _tokenProvider = tokenProvider ?? new SessionTokenProvider();
+    private readonly ICompetitionRepository? _repository = repository;
 
     public Competition CreateCompetition(
         string name,
@@ -36,6 +41,14 @@ public sealed class CompetitionManager(SessionTokenProvider? tokenProvider = nul
 
         _competitionsByCode[code] = competition;
         _competitionsById[competition.Id] = competition;
+
+        if (_repository != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try { await _repository.AddAsync(competition); } catch { }
+            });
+        }
 
         return competition;
     }
@@ -61,6 +74,14 @@ public sealed class CompetitionManager(SessionTokenProvider? tokenProvider = nul
         var session = _tokenProvider.CreateSession(participant.Id, out string rawToken);
 
         _sessionsByTokenHash[session.TokenHash] = session;
+
+        if (_repository != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try { await _repository.UpdateAsync(competition); } catch { }
+            });
+        }
 
         return new JoinResult(
             CompetitionId: competition.Id,

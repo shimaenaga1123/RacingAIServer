@@ -21,6 +21,43 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: racing-backend
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=racing_db;Username=racing_user;Password=racing_password
+      Redis__Configuration: redis:6379
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - replay_data:/app/replays
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: racing-web
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      API_BASE: http://localhost:5000/api/v1
+      SIGNALR_URL: http://localhost:5000/hubs/race
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
+  replay_data:

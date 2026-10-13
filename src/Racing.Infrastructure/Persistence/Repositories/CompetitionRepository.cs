@@ -102,7 +102,7 @@ public sealed class CompetitionRepository(RacingDbContext db) : ICompetitionRepo
             if (status >= CompetitionStatus.Open) comp.Open();
             foreach (var p in entity.Participants)
             {
-                try { comp.AddParticipant(p.Name); } catch { }
+                comp.RestoreParticipant(p.Id, p.Name, p.RegisteredAt);
             }
             if (status >= CompetitionStatus.Running) comp.Start();
             if (status == CompetitionStatus.Finished) comp.Finish();

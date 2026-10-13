@@ -7,6 +7,38 @@ namespace Racing.Application.Leaderboard;
 
 public sealed class LeaderboardCalculator
 {
+    public static IReadOnlyList<LeaderboardEntry> Calculate(
+        IEnumerable<Racing.Domain.Competitions.Participant> participants,
+        IEnumerable<PersistedRaceResult> results)
+    {
+        var resultList = results.ToList();
+        var existingLeaderboard = Calculate(resultList);
+        var rankedParticipantIds = existingLeaderboard.Select(e => e.ParticipantId).ToHashSet();
+
+        var fullList = new List<LeaderboardEntry>(existingLeaderboard);
+        int nextRank = fullList.Count + 1;
+
+        foreach (var p in participants)
+        {
+            if (!rankedParticipantIds.Contains(p.Id))
+            {
+                fullList.Add(new LeaderboardEntry(
+                    Rank: nextRank++,
+                    ParticipantId: p.Id,
+                    ParticipantName: p.Name,
+                    TotalPoints: 0,
+                    RacesParticipated: 0,
+                    Wins: 0,
+                    Podiums: 0,
+                    BestLapTimeSeconds: 0f,
+                    TotalTimeSeconds: 0f
+                ));
+            }
+        }
+
+        return fullList;
+    }
+
     public static IReadOnlyList<LeaderboardEntry> Calculate(IEnumerable<PersistedRaceResult> results)
     {
         var grouped = results.GroupBy(r => r.ParticipantId);

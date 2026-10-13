@@ -13,6 +13,7 @@ public sealed class GrpcAgentConnection : IAgentConnection
 {
     private readonly Channel<ServerMessage> _outgoingChannel;
     private readonly ConcurrentDictionary<ulong, TaskCompletionSource<DriverAction>> _pendingTicks = new();
+    private readonly ConcurrentDictionary<ulong, DriverAction> _earlyActions = new();
     private readonly CancellationTokenSource _cts = new();
 
     public Guid ParticipantId { get; }
@@ -44,10 +45,15 @@ public sealed class GrpcAgentConnection : IAgentConnection
     public void SubmitAction(Action action)
     {
         ulong tick = action.Tick;
+        var driverAction = new DriverAction(action.Steering, action.Throttle, action.Brake);
+
         if (_pendingTicks.TryRemove(tick, out var tcs))
         {
-            var driverAction = new DriverAction(action.Steering, action.Throttle, action.Brake);
             tcs.TrySetResult(driverAction);
+        }
+        else
+        {
+            _earlyActions[tick] = driverAction;
         }
     }
 
@@ -55,7 +61,20 @@ public sealed class GrpcAgentConnection : IAgentConnection
     {
         if (!IsConnected) return null;
 
+        // 이미 선착순 도착한 액션이 있으면 즉시 반환
+        if (_earlyActions.TryRemove(tick, out var earlyAction))
+        {
+            return earlyAction;
+        }
+
         var tcs = _pendingTicks.GetOrAdd(tick, _ => new TaskCompletionSource<DriverAction>(TaskCreationOptions.RunContinuationsAsynchronously));
+
+        // GetOrAdd 도중 간발의 차로 SubmitAction이 _earlyActions에 넣었을 수도 있으므로 재검사
+        if (_earlyActions.TryRemove(tick, out var raceAction))
+        {
+            _pendingTicks.TryRemove(tick, out _);
+            return raceAction;
+        }
 
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, _cts.Token);
         var timeoutTask = Task.Delay(timeout, linkedCts.Token);

@@ -1,0 +1,15 @@
+.git
+.github
+.vscode
+.idea
+**/bin/
+**/obj/
+tests/
+sdk/
+web/
+docs/
+replays/
+*.user
+*.suo
+*.md
+docker-compose*.yml

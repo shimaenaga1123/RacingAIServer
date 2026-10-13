@@ -53,6 +53,16 @@ public sealed class Competition(
         return participant;
     }
 
+    public void RestoreParticipant(Guid id, string name, DateTimeOffset? registeredAt = null)
+    {
+        if (_participants.Exists(p => p.Id == id))
+        {
+            return;
+        }
+
+        _participants.Add(new Participant(id, name, registeredAt));
+    }
+
     public void Start()
     {
         if (Status != CompetitionStatus.Open)

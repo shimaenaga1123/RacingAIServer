@@ -1,0 +1,16 @@
+{
+  "id": "test-loop",
+  "name": "Test Loop Circuit",
+  "isLoop": true,
+  "defaultLaps": 3,
+  "points": [
+    { "position": { "x": 0.0, "y": 0.0 }, "width": 12.0 },
+    { "position": { "x": 50.0, "y": 0.0 }, "width": 12.0 },
+    { "position": { "x": 80.0, "y": 30.0 }, "width": 12.0 },
+    { "position": { "x": 80.0, "y": 80.0 }, "width": 12.0 },
+    { "position": { "x": 50.0, "y": 110.0 }, "width": 12.0 },
+    { "position": { "x": 0.0, "y": 110.0 }, "width": 12.0 },
+    { "position": { "x": -30.0, "y": 80.0 }, "width": 12.0 },
+    { "position": { "x": -30.0, "y": 30.0 }, "width": 12.0 }
+  ]
+}
