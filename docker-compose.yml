@@ -23,12 +23,10 @@ services:
       - postgres
       - redis
     environment:
-      ConnectionStrings__DefaultConnection: "Host=${DB_HOST};Port=${DB_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       Redis__Configuration: redis:6379
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5000
-    ports:
-      - "5000:5000"
     volumes:
       - replay_data:/app/replays
     restart: unless-stopped
@@ -45,8 +43,6 @@ services:
       HOST: 0.0.0.0
       API_BASE: ${API_BASE_URL}
       SIGNALR_URL: ${SIGNALR_URL}
-    ports:
-      - "3000:3000"
     restart: unless-stopped
 
 volumes:
