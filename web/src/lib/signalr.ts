@@ -1,5 +1,5 @@
 import * as signalR from "@microsoft/signalr";
-import { SIGNALR_URL } from "./api";
+import { SIGNALR_URL } from "$app/env/public";
 
 export interface CarSnapshot {
   participantId: string;

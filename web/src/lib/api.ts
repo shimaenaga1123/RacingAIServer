@@ -1,4 +1,4 @@
-import {API_BASE, SIGNALR_URL} from "$app/env/public";
+import { API_BASE } from "$app/env/public";
 
 export interface CompetitionRules {
   tickRate: number;
