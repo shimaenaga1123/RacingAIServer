@@ -1,22 +1,16 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: racing-postgres
     environment:
-      POSTGRES_USER: racing_user
-      POSTGRES_PASSWORD: racing_password
-      POSTGRES_DB: racing_db
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    container_name: racing-redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -25,12 +19,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: racing-backend
     depends_on:
       - postgres
       - redis
     environment:
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=racing_db;Username=racing_user;Password=racing_password
+      ConnectionStrings__DefaultConnection: "Host=${DB_HOST};Port=${DB_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       Redis__Configuration: redis:6379
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5000
@@ -44,15 +37,14 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
-    container_name: racing-web
     depends_on:
       - backend
     environment:
       NODE_ENV: production
       PORT: 3000
       HOST: 0.0.0.0
-      API_BASE: http://localhost:5000/api/v1
-      SIGNALR_URL: http://localhost:5000/hubs/race
+      API_BASE: ${API_BASE_URL}
+      SIGNALR_URL: ${SIGNALR_URL}
     ports:
       - "3000:3000"
     restart: unless-stopped
