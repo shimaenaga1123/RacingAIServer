@@ -29,14 +29,17 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 # 기본 의존 라이브러리 및 디렉터리 준비
-RUN mkdir -p /app/tracks /app/replays
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /app/tracks /app/replays
 
 # 빌드 산출물 복사
 COPY --from=build /app/publish .
 COPY --from=build /app/tracks ./tracks
 
-# 환경 변수 설정 (REST, SignalR, gRPC 공용 포트)
-ENV ASPNETCORE_URLS=http://+:5000
+# 환경 변수 설정 (REST, SignalR, gRPC 공용 HTTPS 포트)
+ENV ASPNETCORE_URLS=https://+:5000
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 

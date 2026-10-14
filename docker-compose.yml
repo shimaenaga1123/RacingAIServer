@@ -7,6 +7,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     restart: unless-stopped
 
   redis:
@@ -20,15 +25,67 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      certbot:
+        condition: service_healthy
     environment:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       Redis__Configuration: redis:6379
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: http://+:5000
+      ASPNETCORE_URLS: https://+:5000
+      Https__CertificatePath: /https/live/${DOMAIN}/fullchain.pem
+      Https__PrivateKeyPath: /https/live/${DOMAIN}/privkey.pem
+    expose:
+      - "5000"
     volumes:
       - replay_data:/app/replays
+      - ${LETSENCRYPT_CERT_DIR:-./certs}:/https:ro
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/dns-cloudflare:latest
+    environment:
+      DOMAIN: ${DOMAIN}
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+      CERTBOT_PROPAGATION_SECONDS: ${CERTBOT_PROPAGATION_SECONDS:-10}
+    volumes:
+      - ${LETSENCRYPT_CERT_DIR:-./certs}:/etc/letsencrypt
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - |
+        set -eu
+        credentials_file=/tmp/cloudflare.ini
+        printf '%s\n' "dns_cloudflare_api_token = $${CLOUDFLARE_API_TOKEN}" > "$$credentials_file"
+        chmod 600 "$$credentials_file"
+        trap 'rm -f "$$credentials_file"' EXIT
+
+        if [ ! -f "/etc/letsencrypt/live/$${DOMAIN}/fullchain.pem" ]; then
+          certbot certonly \
+            --dns-cloudflare \
+            --dns-cloudflare-credentials "$$credentials_file" \
+            --dns-cloudflare-propagation-seconds "$${CERTBOT_PROPAGATION_SECONDS}" \
+            --non-interactive --agree-tos \
+            --email "$${CERTBOT_EMAIL}" -d "$${DOMAIN}"
+        fi
+        while :; do
+          certbot renew \
+            --dns-cloudflare \
+            --dns-cloudflare-credentials "$$credentials_file" \
+            --dns-cloudflare-propagation-seconds "$${CERTBOT_PROPAGATION_SECONDS}" \
+            --non-interactive
+          sleep 12h
+        done
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /etc/letsencrypt/live/$${DOMAIN}/fullchain.pem"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
     restart: unless-stopped
 
   web:

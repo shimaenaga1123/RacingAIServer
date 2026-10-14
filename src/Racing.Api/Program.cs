@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System.Security.Cryptography.X509Certificates;
 using Racing.Api.Hubs;
 using Racing.Api.Realtime;
 using Racing.Api.Services;
@@ -17,6 +19,33 @@ using Racing.Infrastructure.Persistence.Repositories;
 using Racing.Simulation.Tracks;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var certificatePath = builder.Configuration["Https:CertificatePath"];
+var privateKeyPath = builder.Configuration["Https:PrivateKeyPath"];
+if (!string.IsNullOrWhiteSpace(certificatePath) && !string.IsNullOrWhiteSpace(privateKeyPath))
+{
+    if (!File.Exists(certificatePath))
+    {
+        throw new FileNotFoundException("Let's Encrypt certificate was not found.", certificatePath);
+    }
+
+    if (!File.Exists(privateKeyPath))
+    {
+        throw new FileNotFoundException("Let's Encrypt private key was not found.", privateKeyPath);
+    }
+
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenAnyIP(5000, listenOptions =>
+        {
+            listenOptions.UseHttps(httpsOptions =>
+            {
+                httpsOptions.ServerCertificateSelector = (_, _) =>
+                    X509Certificate2.CreateFromPemFile(certificatePath, privateKeyPath);
+            });
+        });
+    });
+}
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -68,14 +97,12 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<RacingDbContext>();
     if (db.Database.IsRelational())
     {
-        try
-        {
-            db.Database.Migrate();
-        }
-        catch
-        {
-            // DB 컨테이너 미구동 시 개발 편의를 위해 로그 기록 후 계속 진행
-        }
+        var logger = scope.ServiceProvider
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("DatabaseInitialization");
+
+        logger.LogInformation("Applying PostgreSQL database migrations.");
+        db.Database.Migrate();
     }
     else
     {
